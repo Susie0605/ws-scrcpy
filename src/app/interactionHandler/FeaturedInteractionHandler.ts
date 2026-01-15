@@ -86,28 +86,6 @@ export class FeaturedInteractionHandler extends InteractionHandler {
             console.error(TAG, 'Unsupported event', event);
             return;
         }
-        if (messages && messages.length) {
-            const rotation = screenInfo.deviceRotation;
-            if (rotation) {
-                messages = messages.map((message) => {
-                    if (message instanceof TouchControlMessage) {
-                        const pos = message.position.rotate(rotation);
-                        return new TouchControlMessage(
-                            message.action,
-                            message.pointerId,
-                            pos,
-                            message.pressure,
-                            message.buttons,
-                        );
-                    }
-                    if (message instanceof ScrollControlMessage) {
-                        const pos = message.position.rotate(rotation);
-                        return new ScrollControlMessage(pos, (message as ScrollControlMessage).hScroll, (message as ScrollControlMessage).vScroll);
-                    }
-                    return message;
-                });
-            }
-        }
         if (event.cancelable) {
             event.preventDefault();
         }

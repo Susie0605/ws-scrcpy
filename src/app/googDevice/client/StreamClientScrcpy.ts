@@ -408,39 +408,21 @@ export class StreamClientScrcpy
         if (!this.deviceView) {
             return;
         }
-        const body = document.body;
-        const isMobile = Math.min(body.clientWidth, body.clientHeight) < 768;
-        const isPortrait = body.clientWidth < body.clientHeight;
+        this.deviceView.style.transform = '';
+        this.deviceView.style.transformOrigin = '';
+        this.deviceView.style.width = '';
+        this.deviceView.style.height = '';
+        this.deviceView.style.position = '';
+        this.deviceView.style.left = '';
+        this.deviceView.style.top = '';
+        document.body.style.overflow = '';
 
-        if (isMobile && isPortrait) {
-            const newWidth = body.clientHeight;
-            const newHeight = body.clientWidth;
-
-            this.deviceView.style.transform = 'rotate(90deg)';
-            this.deviceView.style.transformOrigin = 'center center';
-            this.deviceView.style.width = `${newWidth}px`;
-            this.deviceView.style.height = `${newHeight}px`;
-            this.deviceView.style.position = 'absolute';
-            this.deviceView.style.left = `${(body.clientWidth - newWidth) / 2}px`;
-            this.deviceView.style.top = `${(body.clientHeight - newHeight) / 2}px`;
-            document.body.style.overflow = 'hidden';
-        } else {
-            this.deviceView.style.transform = '';
-            this.deviceView.style.transformOrigin = '';
-            this.deviceView.style.width = '';
-            this.deviceView.style.height = '';
-            this.deviceView.style.position = '';
-            this.deviceView.style.left = '';
-            this.deviceView.style.top = '';
-            document.body.style.overflow = '';
-        }
-
-        if (this.fitToScreen && this.player) {
+        if (this.player) {
             const newBounds = this.getMaxSize();
             if (newBounds) {
                 const currentSettings = this.player.getVideoSettings();
                 const newSettings = StreamClientScrcpy.createVideoSettingsWithBounds(currentSettings, newBounds);
-                this.player.setVideoSettings(newSettings, this.fitToScreen, false);
+                this.player.setVideoSettings(newSettings, true, false);
                 this.sendMessage(CommandControlMessage.createSetVideoSettingsCommand(newSettings));
             }
         }
@@ -451,17 +433,8 @@ export class StreamClientScrcpy
             return;
         }
         const body = document.body;
-        const isMobile = Math.min(body.clientWidth, body.clientHeight) < 768;
-        const isPortrait = body.clientWidth < body.clientHeight;
-
-        let width, height;
-        if (isMobile && isPortrait) {
-            width = body.clientHeight - this.controlButtons.clientWidth;
-            height = body.clientWidth;
-        } else {
-            width = body.clientWidth - this.controlButtons.clientWidth;
-            height = body.clientHeight;
-        }
+        const width = body.clientWidth - this.controlButtons.clientWidth;
+        const height = body.clientHeight;
         return new Size(width & ~15, height & ~15);
     }
 
