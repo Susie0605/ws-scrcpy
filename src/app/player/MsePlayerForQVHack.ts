@@ -9,7 +9,7 @@ export class MsePlayerForQVHack extends MsePlayer {
         bitrate: 8000000,
         maxFps: 30,
         iFrameInterval: 10,
-        bounds: new Size(720, 720),
+        bounds: new Size(1920, 720),
         sendFrameMeta: false,
     });
 
