@@ -346,6 +346,10 @@ export class StreamClientScrcpy
         player.pause();
 
         document.body.appendChild(deviceView);
+        const bounds = this.getMaxSize();
+        if (bounds && this.player) {
+            this.player.setBounds(bounds);
+        }
         window.addEventListener('resize', this.updateMobileLayout);
         window.addEventListener('orientationchange', this.updateMobileLayout);
         this.updateMobileLayout();
@@ -417,14 +421,12 @@ export class StreamClientScrcpy
         this.deviceView.style.top = '';
         document.body.style.overflow = '';
 
-        if (this.player) {
-            const newBounds = this.getMaxSize();
-            if (newBounds) {
-                const currentSettings = this.player.getVideoSettings();
-                const newSettings = StreamClientScrcpy.createVideoSettingsWithBounds(currentSettings, newBounds);
-                this.player.setVideoSettings(newSettings, true, false);
-                this.sendMessage(CommandControlMessage.createSetVideoSettingsCommand(newSettings));
-            }
+        if (!this.player) {
+            return;
+        }
+        const newBounds = this.getMaxSize();
+        if (newBounds) {
+            this.player.setBounds(newBounds);
         }
     };
 

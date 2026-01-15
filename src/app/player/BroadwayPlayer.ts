@@ -24,6 +24,7 @@ export class BroadwayPlayer extends BaseCanvasBasedPlayer {
     protected canvas?: Canvas;
     private avc?: Avc;
     public readonly supportsScreenshot: boolean = true;
+    public readonly resizeVideoToBounds: boolean = true;
 
     public static isSupported(): boolean {
         return typeof WebAssembly === 'object' && typeof WebAssembly.instantiate === 'function';
