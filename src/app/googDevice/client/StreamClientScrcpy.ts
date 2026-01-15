@@ -291,6 +291,23 @@ export class StreamClientScrcpy
         if (!videoSettings) {
             videoSettings = player.getVideoSettings();
         }
+        if (!fitToScreen) {
+            const preferred = player.getPreferredVideoSetting();
+            const preferredBounds = preferred.bounds;
+            const currentBounds = videoSettings.bounds;
+            if (
+                preferredBounds &&
+                (!currentBounds ||
+                    currentBounds.width === 0 ||
+                    currentBounds.height === 0 ||
+                    currentBounds.width === 480 ||
+                    currentBounds.height === 480 ||
+                    currentBounds.width === 720 ||
+                    currentBounds.height === 720)
+            ) {
+                videoSettings = StreamClientScrcpy.createVideoSettingsWithBounds(videoSettings, preferredBounds);
+            }
+        }
 
         const deviceView = (this.deviceView = document.createElement('div'));
         deviceView.className = 'device-view';
