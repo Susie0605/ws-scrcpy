@@ -49,6 +49,7 @@ export class StreamClientScrcpy
     private static players: Map<string, PlayerClass> = new Map<string, PlayerClass>();
 
     private controlButtons?: HTMLElement;
+    private deviceView?: HTMLElement;
     private deviceName = '';
     private clientId = -1;
     private clientsCount = -1;
@@ -291,7 +292,7 @@ export class StreamClientScrcpy
             videoSettings = player.getVideoSettings();
         }
 
-        const deviceView = document.createElement('div');
+        const deviceView = (this.deviceView = document.createElement('div'));
         deviceView.className = 'device-view';
         const stop = (ev?: string | Event) => {
             if (ev && ev instanceof Event && ev.type === 'error') {
@@ -310,6 +311,8 @@ export class StreamClientScrcpy
             if (this.player) {
                 this.player.stop();
             }
+            window.removeEventListener('resize', this.updateMobileLayout);
+            window.removeEventListener('orientationchange', this.updateMobileLayout);
         };
 
         const googMoreBox = (this.moreBox = new GoogMoreBox(udid, player, this));
@@ -326,6 +329,10 @@ export class StreamClientScrcpy
         player.pause();
 
         document.body.appendChild(deviceView);
+        window.addEventListener('resize', this.updateMobileLayout);
+        window.addEventListener('orientationchange', this.updateMobileLayout);
+        this.updateMobileLayout();
+
         if (fitToScreen) {
             const newBounds = this.getMaxSize();
             if (newBounds) {
@@ -380,14 +387,65 @@ export class StreamClientScrcpy
         return this.clientsCount;
     }
 
+    private updateMobileLayout = (): void => {
+        if (!this.deviceView) {
+            return;
+        }
+        const body = document.body;
+        const isMobile = Math.min(body.clientWidth, body.clientHeight) < 768;
+        const isPortrait = body.clientWidth < body.clientHeight;
+
+        if (isMobile && isPortrait) {
+            const newWidth = body.clientHeight;
+            const newHeight = body.clientWidth;
+
+            this.deviceView.style.transform = 'rotate(90deg)';
+            this.deviceView.style.transformOrigin = 'center center';
+            this.deviceView.style.width = `${newWidth}px`;
+            this.deviceView.style.height = `${newHeight}px`;
+            this.deviceView.style.position = 'absolute';
+            this.deviceView.style.left = `${(body.clientWidth - newWidth) / 2}px`;
+            this.deviceView.style.top = `${(body.clientHeight - newHeight) / 2}px`;
+            document.body.style.overflow = 'hidden';
+        } else {
+            this.deviceView.style.transform = '';
+            this.deviceView.style.transformOrigin = '';
+            this.deviceView.style.width = '';
+            this.deviceView.style.height = '';
+            this.deviceView.style.position = '';
+            this.deviceView.style.left = '';
+            this.deviceView.style.top = '';
+            document.body.style.overflow = '';
+        }
+
+        if (this.fitToScreen && this.player) {
+            const newBounds = this.getMaxSize();
+            if (newBounds) {
+                const currentSettings = this.player.getVideoSettings();
+                const newSettings = StreamClientScrcpy.createVideoSettingsWithBounds(currentSettings, newBounds);
+                this.player.setVideoSettings(newSettings, this.fitToScreen, false);
+                this.sendMessage(CommandControlMessage.createSetVideoSettingsCommand(newSettings));
+            }
+        }
+    };
+
     public getMaxSize(): Size | undefined {
         if (!this.controlButtons) {
             return;
         }
         const body = document.body;
-        const width = (body.clientWidth - this.controlButtons.clientWidth) & ~15;
-        const height = body.clientHeight & ~15;
-        return new Size(width, height);
+        const isMobile = Math.min(body.clientWidth, body.clientHeight) < 768;
+        const isPortrait = body.clientWidth < body.clientHeight;
+
+        let width, height;
+        if (isMobile && isPortrait) {
+            width = body.clientHeight - this.controlButtons.clientWidth;
+            height = body.clientWidth;
+        } else {
+            width = body.clientWidth - this.controlButtons.clientWidth;
+            height = body.clientHeight;
+        }
+        return new Size(width & ~15, height & ~15);
     }
 
     private setTouchListeners(player: BasePlayer): void {
